@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>İyi ki Doğdun Bitanem ♥️</title>
+<style>
+  body {
+    margin: 0;
+    background: linear-gradient(135deg, #6a0dad, #9b30ff);
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+  }
+  header {
+    text-align: center;
+    padding: 30px 15px 15px;
+  }
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0;
+  }
+  .countdown {
+    font-size: 1.5rem;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  .confetti, .balloons, .fireworks {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>İyi ki Doğdun Bitanem ♥️</h1>
+  <div class="countdown" id="countdown">Geri sayım yükleniyor...</div>
+</header>
+
+<canvas id="confetti" class="confetti"></canvas>
+<canvas id="fireworks" class="fireworks"></canvas>
+
+<script>
+// Geri sayım
+const countDownDate = new Date("June 10, 2025 00:00:00").getTime();
+const countdownEl = document.getElementById("countdown");
+function updateCountdown() {
+  const now = new Date().getTime();
+  const distance = countDownDate - now;
+  if (distance < 0) {
+    countdownEl.innerHTML = "Doğum Günün Kutlu Olsun! 🎉";
+    clearInterval(interval);
+    return;
+  }
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  countdownEl.innerHTML = `Doğum Gününe: ${days}g ${hours}s ${minutes}d ${seconds}s`;
+}
+const interval = setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// Basit konfeti animasyonu
+const confettiCanvas = document.getElementById("confetti");
+const ctxConfetti = confettiCanvas.getContext("2d");
+confettiCanvas.width = window.innerWidth;
+confettiCanvas.height = window.innerHeight;
+window.addEventListener("resize", () => {
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+});
+const confettiPieces = [];
+const colors = ["#ff0a54","#ff477e","#ff85a1","#fbb1b1","#f9bec7","#ab83a1","#ffc8dd"];
+function randomRange(min, max) {
+  return Math.random() * (max - min) + min;
+}
+class ConfettiPiece {
+  constructor() {
+    this.x = Math.random() * confettiCanvas.width;
+    this.y = Math.random() * confettiCanvas.height - confettiCanvas.height;
+    this.size = randomRange(5, 10);
+    this.speed = randomRange(1, 3);
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+    this.rotation = randomRange(0, 360);
+    this.rotationSpeed = randomRange(-5, 5);
+  }
+  update() {
+    this.y += this.speed;
+    this.rotation += this.rotationSpeed;
+    if (this.y > confettiCanvas.height) {
+      this.y = -this.size;
+      this.x = Math.random() * confettiCanvas.width;
+    }
+  }
+  draw() {
+    ctxConfetti.save();
+    ctxConfetti.translate(this.x, this.y);
+    ctxConfetti.rotate((this.rotation * Math.PI) / 180);
+    ctxConfetti.fillStyle = this.color;
+    ctxConfetti.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+    ctxConfetti.restore();
+  }
+}
+for(let i=0;i<150;i++) {
+  confettiPieces.push(new ConfettiPiece());
+}
+function confettiLoop() {
+  ctxConfetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+  confettiPieces.forEach(piece => {
+    piece.update();
+    piece.draw();
+  });
+  requestAnimationFrame(confettiLoop);
+}
+confettiLoop();
+
+// Basit havai fişek animasyonu
+const fireworksCanvas = document.getElementById("fireworks");
+const ctxFireworks = fireworksCanvas.getContext("2d");
+fireworksCanvas.width = window.innerWidth;
+fireworksCanvas.height = window.innerHeight;
+window.addEventListener("resize", () => {
+  fireworksCanvas.width = window.innerWidth;
+  fireworksCanvas.height = window.innerHeight;
+});
+class Firework {
+  constructor() {
+    this.x = Math.random() * fireworksCanvas.width;
+    this.y = fireworksCanvas.height;
+    this.targetY = randomRange(fireworksCanvas.height / 4, fireworksCanvas.height / 2);
+    this.speed = randomRange(5, 7);
+    this.exploded = false;
+    this.particles = [];
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+  }
+  update() {
+    if(!this.exploded) {
+      this.y -= this.speed;
+      if(this.y <= this.targetY) {
+        this.exploded = true;
+        for(let i=0; i<30; i++) {
+          this.particles.push(new Particle(this.x, this.y, this.color));
+        }
+      }
+    } else {
+      this.particles.forEach(p => p.update());
+      this.particles = this.particles.filter(p => !p.dead);
+      if(this.particles.length === 0) {
+        this.reset();
+      }
+    }
+  }
+  reset() {
+    this.x = Math.random() * fireworksCanvas.width;
+    this.y = fireworksCanvas.height;
+    this.targetY = randomRange(fireworksCanvas.height / 4, fireworksCanvas.height / 2);
+    this.speed = randomRange(5, 7);
+    this.exploded = false;
+    this.particles = [];
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+  }
+  draw() {
+    if(!this.exploded) {
+      ctxFireworks.beginPath();
+      ctxFireworks.arc(this.x, this.y, 3, 0, 2 * Math.PI);
+      ctxFireworks.fillStyle = this.color;
+      ctxFireworks.fill();
+    } else {
+      this.particles.forEach(p => p.draw());
+    }
+  }
+}
+class Particle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.radius = Math.random() * 2 + 1;
+    this.speedX = randomRange(-3, 3);
+    this.speedY = randomRange(-3, 3);
+    this.gravity = 0.05;
+    this.alpha = 1;
+    this.dead = false;
+  }
+  update() {
+    this.speedY += this.gravity;
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.alpha -= 0.02;
+    if(this.alpha <= 0) this.dead = true;
+  }
+  draw() {
+    ctxFireworks.save();
+    ctxFireworks.globalAlpha = this.alpha;
+    ctxFireworks.beginPath();
+    ctxFireworks.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+    ctxFireworks.fillStyle = this.color;
+    ctxFireworks.fill();
+    ctxFireworks.restore();
+  }
+}
+const fireworks = [];
+for(let i=0;i<5;i++) fireworks.push(new Firework());
+function fireworksLoop() {
+  ctxFireworks.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+  fireworks.forEach(fw => {
+    fw.update();
+    fw.draw();
+  });
+  requestAnimationFrame(fireworksLoop);
+}
+fireworksLoop();
+
+</script>
+
+</body>
+</html>
